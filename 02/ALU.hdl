@@ -67,20 +67,22 @@ CHIP ALU {
 
     //Handle no
     Not16(in=resultBeforeNO, out=resultAfterNO);
-    Mux16(a=resultBeforeNO, b=resultAfterNO, sel=no, out=finalResult);
+    Mux16(a=resultBeforeNO, b=resultAfterNO, sel=no, out=result);
 
     //Hack to select the output so that we can still use it for the next bits.
-    Mux16(a=finalResult, b=false, sel=false, out=out);
+    //The hardware simulator throws an error if you try to use the out further done.
+    //This seems kinda ineffcient.
+    Mux16(a=result, b=false, sel=false, out=out);
 
     //Compute zr.  If we Or every bit with the one next to it, this will only return 0 if all
     //the bits are 0.
-    Or16Way(in=finalResult, out=zrResult);
+    Or16Way(in=result, out=zrResult);
 
     //Now we have to negate zrResult as it is 0 if out=0 which is the opposite of what we want.
     Not(in=zrResult, out=zr);
 
     //Compute ng.
     //Negative numbers start with 1 in twos compliment.
-    //So we just have to compare the first bit with 1 and return 1 if so.  An and gate will do this.
-    Neg16Test(in=finalResult, out=ng);
+    //So we just have to compare the first bit with 1 and return 1 if so.
+    Neg16Test(in=result, out=ng);
 }
