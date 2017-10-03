@@ -42,5 +42,45 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    //Handle zx
+    Mux16(a=x, b[0..15]=false, sel=zx, out=xPostZX);
+
+    //Handle nx
+    Not16(in=xPostZX, out=notXPostZX);
+    Mux16(a=xPostZX, b=notXPostZX, sel=nx, out=xPostZXAndNX);
+
+    //Handle zy
+    Mux16(a=y, b[0..15]=false, sel=zy, out=yPostZY);
+
+    //Handle ny
+    Not16(in=yPostZY, out=notYPostZY);
+    Mux16(a=yPostZY, b=notYPostZY, sel=ny, out=yPostZYAndNY);
+
+    //Add16 of results
+    Add16(a=xPostZXAndNX, b=yPostZYAndNY, out=fEquals1);
+
+    //Bitwise And16 of results
+    And16(a=xPostZXAndNX, b=yPostZYAndNY, out=fEquals0);
+
+    //Choose correct one based on f.
+    Mux16(a=fEquals0, b=fEquals1, sel=f, out=resultBeforeNO);
+
+    //Handle no
+    Not16(in=resultBeforeNO, out=resultAfterNO);
+    Mux16(a=resultBeforeNO, b=resultAfterNO, sel=no, out=finalResult);
+
+    //Hack to select the output so that we can still use it for the next bits.
+    Mux16(a=finalResult, b=false, sel=false, out=out);
+
+    //Compute zr.  If we Or every bit with the one next to it, this will only return 0 if all
+    //the bits are 0.
+    Or16Way(in=finalResult, out=zrResult);
+
+    //Now we have to negate zrResult as it is 0 if out=0 which is the opposite of what we want.
+    Not(in=zrResult, out=zr);
+
+    //Compute ng.
+    //Negative numbers start with 1 in twos compliment.
+    //So we just have to compare the first bit with 1 and return 1 if so.  An and gate will do this.
+    Neg16Test(in=finalResult, out=ng);
 }
