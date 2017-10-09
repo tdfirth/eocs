@@ -67,12 +67,7 @@ CHIP ALU {
 
     //Handle no
     Not16(in=resultBeforeNO, out=resultAfterNO);
-    Mux16(a=resultBeforeNO, b=resultAfterNO, sel=no, out=result);
-
-    //Hack to select the output so that we can still use it for the next bits.
-    //The hardware simulator throws an error if you try to use the out further done.
-    //This seems kinda ineffcient.
-    Mux16(a=result, b=false, sel=false, out=out);
+    Mux16(a=resultBeforeNO, b=resultAfterNO, sel=no, out=result, out=out);
 
     //Compute zr.  If we Or every bit with the one next to it, this will only return 0 if all
     //the bits are 0.
